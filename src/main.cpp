@@ -1,34 +1,36 @@
 #include <iostream>
 #include <thread>
+#include <atomic>
 #include <chrono>
 
 #include "RingBuffer.hpp"
 #include "JoystickReader.hpp"
-#include "CSVLogger.hpp"
+#include "BinaryLogger.hpp"
 
-constexpr size_t BUFFER_SIZE = 4096;
+constexpr size_t BUFFER_SIZE = 40;
 
 int main() {
     RingBuffer<StickEvent, BUFFER_SIZE> buffer;
+    std::atomic<bool> running{true};
 
     JoystickReader joystick("/dev/input/js0");
-    CsvLogger logger("data/boxer_sticks.csv");
+    BinaryLogger<BUFFER_SIZE> logger(
+        "data/boxer_sticks.bin", buffer, running);
 
-    std::cout << "Logging RadioMaster Boxer stick data...\n";
+    std::thread loggerThread(&BinaryLogger<BUFFER_SIZE>::run, &logger);
 
-    while (true) {
-        // Producer: read joystick
+    std::cout << "Logging stick data (Ctrl+C to stop)...\n";
+
+    while (running) {
         StickEvent evt;
         if (joystick.readEvent(evt)) {
-            buffer.push(evt); // if full, drop silently
+            std::cout << " evt::: " << evt.value << std::endl;
+            buffer.push(evt); // drop if full
         }
-
-        // Consumer: write to file
-        while (buffer.pop(evt)) {
-            logger.log(evt);
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::microseconds(200));
     }
+
+    loggerThread.join();
+    return 0;
 }
 
