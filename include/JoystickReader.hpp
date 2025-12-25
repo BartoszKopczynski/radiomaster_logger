@@ -3,9 +3,21 @@
 #include <string>
 #include "RingBuffer.hpp"
 
+
+enum class Stick : uint8_t {
+    Left,
+    Right
+};
+
+enum class AxisType : uint8_t {
+    X,
+    Y
+};
+
 struct StickEvent {
     uint32_t time_ms;
-    uint8_t axis;
+    Stick stick;
+    AxisType axis;
     int16_t value;
 };
 

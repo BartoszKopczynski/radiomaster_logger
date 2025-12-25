@@ -21,9 +21,11 @@ void BinaryLogger<BufferSize>::run() {
     // std::cout << " running thread" << std::endl;                 // endless loop
         while (buffer_.pop(evt)) {  // stick moved
     std::cout << " pop" << std::endl;
-            std::cout << evt.time_ms << std::endl;
-            std::cout << evt.axis << std::endl;
-            std::cout << evt.value << std::endl;
+            std::cout << "time: " << evt.time_ms << std::endl;
+            //std::cout << evt.axis << std::endl;
+            std::cout << "axis:  " << static_cast<int>(evt.axis) << std::endl;
+            std::cout << "stick: " << static_cast<int>(evt.stick) << std::endl;
+            std::cout << "value: " << evt.value << std::endl;
             file_.write(reinterpret_cast<const char*>(&evt),
                         sizeof(StickEvent));
         }

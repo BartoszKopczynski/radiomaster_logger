@@ -14,14 +14,14 @@ int main() {
     std::atomic<bool> running{true};
 
     JoystickReader joystick("/dev/input/js0");
-    BinaryLogger<BUFFER_SIZE> logger(
-        "data/boxer_sticks.bin", buffer, running);
+    BinaryLogger<BUFFER_SIZE> logger("data/boxer_sticks.bin", buffer, running);
 
     std::thread loggerThread(&BinaryLogger<BUFFER_SIZE>::run, &logger);
 
     std::cout << "Logging stick data (Ctrl+C to stop)...\n";
 
     while (running) {
+
         StickEvent evt;
         if (joystick.readEvent(evt)) {
             std::cout << " evt::: " << evt.value << std::endl;

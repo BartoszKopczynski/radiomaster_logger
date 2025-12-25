@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdexcept>
+#include "AxisMapping.hpp"
 
 JoystickReader::JoystickReader(const std::string& device) {
     fd_ = open(device.c_str(), O_RDONLY | O_NONBLOCK);
@@ -16,7 +17,7 @@ JoystickReader::~JoystickReader() {
 }
 
 bool JoystickReader::readEvent(StickEvent& evt) {
-    js_event js;
+    js_event js{};
     ssize_t bytes = read(fd_, &js, sizeof(js));
     if (bytes != sizeof(js))
         return false;
@@ -25,8 +26,15 @@ bool JoystickReader::readEvent(StickEvent& evt) {
     if (js.type != JS_EVENT_AXIS)
         return false;
 
+    Stick stick;
+    AxisType axis;
+    if (!mapAxis(js.number, stick, axis))
+        return false; // ignore non-gimbal axes
+
     evt.time_ms = js.time;
-    evt.axis = js.number;
-    evt.value = js.value;
+    evt.stick   = stick;
+    evt.axis    = axis;
+    evt.value   = js.value;
     return true;
 }
+
